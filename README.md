@@ -6,17 +6,18 @@ Realtime chat application built on a microservice architecture.
 
 | Service | Port | Description |
 |---------|------|-------------|
-| **auth** | 8001 (REST), 50051 (gRPC) | Authentication, JWT, user management |
+| **auth** | 8001 | Authentication, JWT, user management |
 | **chat** | 8002 | Rooms, messages, history |
 | **websocket-gateway** | 8003 | WebSocket connections, realtime events |
 | **notifications** | 8004 | Push notifications for offline users |
 | **frontend** | 3000 | Next.js web application |
+| **RabbitMQ Management** | 15672 | Broker dashboard (chatmesh / chatmesh_secret) |
 
 ## Tech Stack
 
-- **Backend**: FastAPI, SQLAlchemy, gRPC, Redis Pub/Sub
-- **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS
-- **Infrastructure**: PostgreSQL, Redis, Docker
+- **Backend**: FastAPI, FastStream, SQLAlchemy, RabbitMQ (RPC + Pub/Sub)
+- **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, React Query, React Hook Form, Zod
+- **Infrastructure**: PostgreSQL, RabbitMQ, Docker
 
 ## Quick Start
 

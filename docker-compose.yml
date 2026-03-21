@@ -16,13 +16,17 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
     ports:
-      - "6379:6379"
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: chatmesh
+      RABBITMQ_DEFAULT_PASS: chatmesh_secret
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
       timeout: 5s
       retries: 5
 
@@ -30,15 +34,16 @@ services:
     build: ./backend/auth
     ports:
       - "8001:8000"
-      - "50051:50051"
     environment:
       DATABASE_URL: postgresql+asyncpg://chatmesh:chatmesh_secret@postgres:5432/chatmesh_auth
+      RABBITMQ_URL: amqp://chatmesh:chatmesh_secret@rabbitmq:5672/
       JWT_SECRET: ${JWT_SECRET:-super-secret-key-change-in-production}
       JWT_ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: "60"
-      GRPC_PORT: "50051"
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   chat:
@@ -47,13 +52,11 @@ services:
       - "8002:8000"
     environment:
       DATABASE_URL: postgresql+asyncpg://chatmesh:chatmesh_secret@postgres:5432/chatmesh_chat
-      REDIS_URL: redis://redis:6379
-      AUTH_GRPC_HOST: auth
-      AUTH_GRPC_PORT: "50051"
+      RABBITMQ_URL: amqp://chatmesh:chatmesh_secret@rabbitmq:5672/
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      rabbitmq:
         condition: service_healthy
       auth:
         condition: service_started
@@ -63,11 +66,9 @@ services:
     ports:
       - "8003:8000"
     environment:
-      REDIS_URL: redis://redis:6379
-      AUTH_GRPC_HOST: auth
-      AUTH_GRPC_PORT: "50051"
+      RABBITMQ_URL: amqp://chatmesh:chatmesh_secret@rabbitmq:5672/
     depends_on:
-      redis:
+      rabbitmq:
         condition: service_healthy
       auth:
         condition: service_started
@@ -78,13 +79,11 @@ services:
       - "8004:8000"
     environment:
       DATABASE_URL: postgresql+asyncpg://chatmesh:chatmesh_secret@postgres:5432/chatmesh_notifications
-      REDIS_URL: redis://redis:6379
-      AUTH_GRPC_HOST: auth
-      AUTH_GRPC_PORT: "50051"
+      RABBITMQ_URL: amqp://chatmesh:chatmesh_secret@rabbitmq:5672/
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      rabbitmq:
         condition: service_healthy
       auth:
         condition: service_started
