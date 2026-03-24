@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from broker import broker
 from routes.rooms import router as rooms_router
+from routes.messages import router as messages_router
 
 
 @asynccontextmanager
@@ -25,6 +26,7 @@ app.add_middleware(
 )
 
 app.include_router(rooms_router)
+app.include_router(messages_router)
 
 
 @app.get("/health")
