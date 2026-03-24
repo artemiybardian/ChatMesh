@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import json
 
@@ -8,6 +9,7 @@ from broker import broker
 from auth_schemas import VerifyTokenRequest, VerifyTokenResponse
 from event_schemas import NewMessageEvent
 from manager import manager
+from presence import publish_presence, heartbeat_loop
 
 router = APIRouter()
 
@@ -42,12 +44,18 @@ async def websocket_endpoint(
     username = auth.username
 
     await manager.connect(websocket, user_id, room_id)
+    await publish_presence(user_id, username, "online")
+
+    heartbeat_task = asyncio.create_task(heartbeat_loop(websocket, user_id))
 
     try:
         while True:
             data = await websocket.receive_text()
             payload = json.loads(data)
             action = payload.get("type", "message")
+
+            if action == "pong":
+                continue
 
             if action == "message":
                 now = datetime.datetime.now(datetime.timezone.utc)
@@ -78,6 +86,14 @@ async def websocket_endpoint(
                 )
 
     except WebSocketDisconnect:
+        pass
+    finally:
+        heartbeat_task.cancel()
         manager.disconnect(user_id, room_id)
-    except Exception:
-        manager.disconnect(user_id, room_id)
+        if not manager.is_user_online(user_id):
+            await publish_presence(user_id, username, "offline")
+
+
+@router.get("/online")
+async def get_online_users():
+    return {"online_users": manager.get_online_users()}
