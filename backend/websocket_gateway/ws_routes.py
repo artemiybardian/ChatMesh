@@ -57,6 +57,20 @@ async def websocket_endpoint(
             if action == "pong":
                 continue
 
+            if action in ("typing:start", "typing:stop"):
+                routing_key = "typing.start" if action == "typing:start" else "typing.stop"
+                await broker.publish(
+                    {"room_id": room_id, "user_id": user_id, "username": username},
+                    exchange=chat_events_exchange,
+                    routing_key=routing_key,
+                )
+                await manager.broadcast_to_room(
+                    room_id,
+                    {"type": action, "room_id": room_id, "user_id": user_id, "username": username},
+                    exclude_user=user_id,
+                )
+                continue
+
             if action == "message":
                 now = datetime.datetime.now(datetime.timezone.utc)
                 event = NewMessageEvent(
