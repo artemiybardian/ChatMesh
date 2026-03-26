@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authApi } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,7 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -30,7 +32,7 @@ export default function LoginPage() {
 
     try {
       const res = await authApi.login({ username, password });
-      localStorage.setItem("access_token", res.access_token);
+      login(res.access_token);
       router.push("/chat");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
