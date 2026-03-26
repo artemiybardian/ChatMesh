@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { type Message } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { useWebSocket } from "@/lib/use-websocket";
 import { MessageList } from "./message-list";
 import { MessageInput } from "./message-input";
 
@@ -10,16 +10,32 @@ interface ChatRoomProps {
 }
 
 export function ChatRoom({ roomId }: ChatRoomProps) {
-  const [realtimeMessages, setRealtimeMessages] = useState<Message[]>([]);
+  const { token } = useAuth();
+  const {
+    connected,
+    messages: realtimeMessages,
+    typingUsers,
+    sendMessage,
+    sendTypingStart,
+    sendTypingStop,
+  } = useWebSocket(roomId, token);
 
-  function handleSend(_content: string) {
-    // WebSocket integration in next commit
-  }
+  const typingNames = Array.from(typingUsers.values());
 
   return (
     <div className="flex flex-1 flex-col">
       <MessageList roomId={roomId} realtimeMessages={realtimeMessages} />
-      <MessageInput onSend={handleSend} />
+      {typingNames.length > 0 && (
+        <div className="px-4 pb-1 text-xs text-muted-foreground animate-pulse">
+          {typingNames.join(", ")} {typingNames.length === 1 ? "is" : "are"} typing...
+        </div>
+      )}
+      <MessageInput
+        onSend={sendMessage}
+        onTypingStart={sendTypingStart}
+        onTypingStop={sendTypingStop}
+        disabled={!connected}
+      />
     </div>
   );
 }
