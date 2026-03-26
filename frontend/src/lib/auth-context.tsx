@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { authApi } from "./api";
+import { authApi, setOnTokenRefreshed } from "./api";
 
 interface User {
   id: number;
@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const logout = useCallback(() => {
+    authApi.logout().catch(() => {});
     localStorage.removeItem("access_token");
     setToken(null);
     setUser(null);
@@ -42,6 +43,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback((newToken: string) => {
     localStorage.setItem("access_token", newToken);
     setToken(newToken);
+  }, []);
+
+  useEffect(() => {
+    setOnTokenRefreshed((newToken) => {
+      setToken(newToken);
+    });
   }, []);
 
   useEffect(() => {

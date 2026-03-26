@@ -22,8 +22,3 @@ class UserResponse(BaseModel):
     created_at: datetime.datetime
 
     model_config = {"from_attributes": True}
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"

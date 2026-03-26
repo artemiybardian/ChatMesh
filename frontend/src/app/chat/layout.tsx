@@ -27,8 +27,8 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex h-screen flex-col">
       <header className="flex h-12 shrink-0 items-center justify-between border-b px-4">
-        <h1 className="text-lg font-semibold">ChatMesh</h1>
-        <div className="flex items-center gap-3">
+        <h1 className="text-lg font-semibold tracking-tight">ChatMesh</h1>
+        <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">{user.username}</span>
           <button
             onClick={logout}
@@ -38,7 +38,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           </button>
         </div>
       </header>
-      <div className="flex flex-1 overflow-hidden">
+      <div className="relative flex flex-1 overflow-hidden">
         {children}
       </div>
     </div>
