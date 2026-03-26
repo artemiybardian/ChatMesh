@@ -2,12 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-const WS_GATEWAY = process.env.NEXT_PUBLIC_WS_URL?.replace("ws://", "http://").replace("wss://", "https://") || "http://localhost:8003";
+const API_BASE = process.env.NEXT_PUBLIC_CHAT_API_URL?.replace("ws://", "http://").replace("wss://", "https://") || "http://localhost/api";
 
 async function fetchOnlineUsers(): Promise<number[]> {
   const token = localStorage.getItem("access_token");
-  const res = await fetch(`${WS_GATEWAY}/online`, {
+  const res = await fetch(`${API_BASE}/online`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: "include",
   });
   if (!res.ok) return [];
   const data = await res.json();

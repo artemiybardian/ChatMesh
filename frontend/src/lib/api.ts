@@ -1,7 +1,7 @@
-const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:8001";
-const CHAT_API = process.env.NEXT_PUBLIC_CHAT_API_URL || "http://localhost:8002";
-const NOTIFICATIONS_API = process.env.NEXT_PUBLIC_NOTIFICATIONS_API_URL || "http://localhost:8004";
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8003";
+const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost/api";
+const CHAT_API = process.env.NEXT_PUBLIC_CHAT_API_URL || "http://localhost/api";
+const NOTIFICATIONS_API = process.env.NEXT_PUBLIC_NOTIFICATIONS_API_URL || "http://localhost/api";
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost";
 
 let onTokenRefreshed: ((token: string) => void) | null = null;
 export function setOnTokenRefreshed(cb: (token: string) => void) {
@@ -13,7 +13,7 @@ async function request<T>(base: string, path: string, options: RequestInit = {})
 
   const res = await fetch(`${base}${path}`, {
     ...options,
-    credentials: base === AUTH_API ? "include" : "omit",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -21,7 +21,7 @@ async function request<T>(base: string, path: string, options: RequestInit = {})
     },
   });
 
-  if (res.status === 401 && base !== AUTH_API) {
+  if (res.status === 401 && !path.includes("/auth/")) {
     const refreshed = await tryRefresh();
     if (refreshed) {
       return request(base, path, options);
